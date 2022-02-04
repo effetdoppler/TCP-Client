@@ -6,7 +6,6 @@
 #include <string.h>
 #include <err.h>
 #include <unistd.h>
-
 const size_t BUFFER_SIZE = 32;
 
 void rewrite(int fd, const void *buf, size_t count)
@@ -95,7 +94,6 @@ void print_page(const char *host)
                 break;
             rewrite(STDOUT_FILENO, buffer, a);
         }
-        free(req);
         close(sfd);
         break;
     }
@@ -104,6 +102,7 @@ void print_page(const char *host)
     if (rp == NULL) {               /* No address succeeded */
         fprintf(stderr, "Could not connect\n");
     }
+    free(req);
     freeaddrinfo(result);           /* No longer needed */
 }
 
