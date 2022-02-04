@@ -13,30 +13,35 @@ void rewrite(int fd, const void *buf, size_t count)
 {
     // TODO
     ssize_t res = write(fd, buf, count);
-    // If an error occurs, exit the program with an error message
-    if (res == -1)
-        errx(1, "error");
     //If the return value of write() is smaller than its third argument, you must call write() a
     //gain in order to have the rest of the data written. Repeat this until all the data has been sent
-    while(res < count)
+    if (res != count)
     {
-        res = write(fd, buf, count);
+        char * buff  = buf;
+        while(res != count)
+        {
+            // If an error occurs, exit the program with an error message
+            if (res == -1)
+                errx(EXIT_FAILURE, "write function has failed: %s", strerror(h_errno));
+                res = write(fd, buf, count);
+            buff = buff + res;
+            count = count - res;
+            res = write(fd, buff, count);
+        }
     }
-
 }
 
 char *build_query(const char *host, size_t *len)
 {
     // TODO
-    char* hostt;
-    int res = asprintf(&hostt, "GET http://www.%s/ HTTP/1.0\r\n\r\n", host);
-    printf(hostt);
+    char* req;
+    int res = asprintf(&req, "GET http://www.%s/ HTTP/1.0\r\n\r\n", host);
     //If the request cannot be generated, the program should exit immediately with an error message.
     if (res == -1)
-        errx(1, "error");
+        errx(EXIT_FAILURE, "the request cannot be generated: %s", strerror(h_errno));
     //This argument must return the length of the request that will be generated
     *len = res;
-    return hostt;
+    return req;
     
 }
 
@@ -55,8 +60,8 @@ void print_page(const char *host)
     
     /* Obtain address(es) matching host/port */
     memset(&hints, 0, sizeof(struct addrinfo));
-    hints.ai_family = AF_INET;    /* Allow IPv4 or IPv6 */
-    hints.ai_socktype = SOCK_STREAM; /* Datagram socket */     /* Any protocol */
+    hints.ai_family = AF_INET;    // IPv4
+    hints.ai_socktype = SOCK_STREAM; // TCP
     hints.ai_flags = NULL;
     hints.ai_protocol = NULL;          /* Any protocol */
     s = getaddrinfo(host, "80", &hints, &result);
@@ -71,17 +76,17 @@ void print_page(const char *host)
     for (rp = result; rp != NULL; rp = rp->ai_next) {
         sfd = socket(rp->ai_family, rp->ai_socktype,
                      rp->ai_protocol);
-        if (sfd == -1)
+        if (sfd == -1 || connect(sfd, rp->ai_addr, rp->ai_addrlen) == -1)
+        {
+            close(sfd);
             continue;
-        if (connect(sfd, rp->ai_addr, rp->ai_addrlen) == -1)
-            continue;            /* Fail */
-        
+        }
         rewrite(sfd, req, len);
         while (1)
         {
             ssize_t a = read(sfd, buffer, BUFFER_SIZE);
             if(a == -1)
-                errx(stderr, "error");
+                errx(stderr, "could not read from the socket");
             if(a == 0)
                 break;
             rewrite(STDOUT_FILENO, buffer, a);
