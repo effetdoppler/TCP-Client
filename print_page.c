@@ -69,15 +69,17 @@ void print_page(const char *host)
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
         exit(EXIT_FAILURE);
     }
-    /* getaddrinfo() returns a list of address structures.
-       Try each address until we successfully connect(2).
-       If socket(2) (or connect(2)) fails, we (close the socket
-       and) try the next address. */
+    // getaddrinfo() returns a list of address structures.
+    // Try each address until we successfully connect(2).
     for (rp = result; rp != NULL; rp = rp->ai_next) {
+        
         sfd = socket(rp->ai_family, rp->ai_socktype,
                      rp->ai_protocol);
+        //If socket(2) fails, we try the next address.              
         if (sfd == -1)
             continue;
+        //If connect(2) fails, we (close the socket
+        //and) try the next address.
         if (connect(sfd, rp->ai_addr, rp->ai_addrlen) == -1)
         {
             close(sfd);
