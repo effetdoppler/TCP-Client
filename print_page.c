@@ -93,6 +93,7 @@ void print_page(const char *host)
                 break;
             rewrite(STDOUT_FILENO, buffer, a);
         }
+        free(req);
         close(sfd);
         break;
     }
