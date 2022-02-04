@@ -22,7 +22,7 @@ void rewrite(int fd, const void *buf, size_t count)
         {
             // If an error occurs, exit the program with an error message
             if (res == -1)
-                errx(EXIT_FAILURE, "write function has failed: %s", strerror(h_errno));
+                err(EXIT_FAILURE, "write function has failed");
                 res = write(fd, buf, count);
             buff = buff + res;
             count = count - res;
@@ -38,7 +38,7 @@ char *build_query(const char *host, size_t *len)
     int res = asprintf(&req, "GET http://www.%s/ HTTP/1.0\r\n\r\n", host);
     //If the request cannot be generated, the program should exit immediately with an error message.
     if (res == -1)
-        errx(EXIT_FAILURE, "the request cannot be generated: %s", strerror(h_errno));
+        err(EXIT_FAILURE, "the request cannot be generated");
     //This argument must return the length of the request that will be generated
     *len = res;
     return req;
@@ -86,7 +86,7 @@ void print_page(const char *host)
         {
             ssize_t a = read(sfd, buffer, BUFFER_SIZE);
             if(a == -1)
-                errx(stderr, "could not read from the socket");
+                err(EXIT_FAILURE, "could not read from the socket");
             if(a == 0)
                 break;
             rewrite(STDOUT_FILENO, buffer, a);
