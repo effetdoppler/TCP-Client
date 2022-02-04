@@ -6,9 +6,8 @@
 
 int main(int argc, char **argv)
 {
-    
     if (argc != 2)
-        errx(EXIT_FAILURE, "the number of argument is different from one");
+        errx(EXIT_FAILURE, "Usage: %s host...\n", argv[0]);
     print_page(argv[1]);
     return 0;
 }
